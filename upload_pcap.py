@@ -3,6 +3,23 @@ import os
 import subprocess
 
 
+def check_and_install_tcpreplay():
+    try:
+        # Check if tcpreplay is installed
+        subprocess.run(["tcpreplay", "--version"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # If tcpreplay is installed, do nothing
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print("tcpreplay is not installed. Installing now...")
+        try:
+            # Update package list and install tcpreplay
+            subprocess.run(["sudo", "apt-get", "update"], check=True)
+            subprocess.run(["sudo", "apt-get", "install", "-y", "tcpreplay"], check=True)
+            print("tcpreplay installed successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to install tcpreplay: {e}")
+            sys.exit(1)
+
+
 def replay_pcap(pcap_filename):
     # Check the size of the pcap file
     file_size = os.path.getsize(pcap_filename)
@@ -57,4 +74,5 @@ if __name__ == "__main__":
         print("PCAP file does not exist.")
         sys.exit(1)
 
+    check_and_install_tcpreplay()
     replay_pcap(pcap_filename)
