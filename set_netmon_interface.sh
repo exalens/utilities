@@ -29,8 +29,8 @@ ensure_directory() {
     done
 }
 
-# Function to set monitoring configuration
-set_monitoring() {
+# Function to set monitoring configuration for wired interface
+set_monitoring_wired() {
     local interface="$1"
     ensure_directory
     # Enable promiscuous mode
@@ -48,14 +48,36 @@ set_monitoring() {
     # Block outbound frames using ebtables
     run_command "sudo ebtables -A OUTPUT -o $interface -j DROP"
     run_command "sudo ebtables-save > /etc/ebtables/rules-save"
-    echo "Monitoring configuration successfully set for $interface"
+    echo "Monitoring configuration successfully set for $interface (wired)"
+}
+
+# Function to set monitoring configuration for Wi-Fi interface
+set_monitoring_wifi() {
+    local interface="$1"
+    ensure_directory
+    # Enable monitor mode
+    run_command "sudo ip link set $interface down"
+    run_command "sudo iw dev $interface set type monitor"
+    run_command "sudo ip link set $interface up"
+    # Block all inbound and outbound IPv4 and IPv6 connections via iptables and ip6tables
+    run_command "sudo iptables -I INPUT -i $interface -j DROP"
+    run_command "sudo iptables -I OUTPUT -o $interface -j DROP"
+    run_command "sudo ip6tables -I INPUT -i $interface -j DROP"
+    run_command "sudo ip6tables -I OUTPUT -o $interface -j DROP"
+    # Save iptables and ip6tables rules
+    run_command "sudo iptables-save > /etc/iptables/rules.v4"
+    run_command "sudo ip6tables-save > /etc/iptables/rules.v6"
+    # Block outbound frames using ebtables
+    run_command "sudo ebtables -A OUTPUT -o $interface -j DROP"
+    run_command "sudo ebtables-save > /etc/ebtables/rules-save"
+    echo "Monitoring configuration successfully set for $interface (Wi-Fi)"
 }
 
 # Function to remove monitoring configuration
 remove_monitoring() {
     local interface="$1"
     ensure_directory
-    # Disable promiscuous mode
+    # Disable promiscuous mode or monitor mode
     run_command "sudo ip link set $interface promisc off"
     # Enable ARP
     run_command "sudo ip link set $interface arp on"
@@ -76,10 +98,15 @@ remove_monitoring() {
 # Main script execution
 main() {
     read -p "Enter the interface name: " interface_name
+    read -p "Is this a Wi-Fi interface? (yes/no): " is_wifi
     read -p "Would you like to set or remove the monitoring configuration? (set/remove): " action
 
     if [ "$action" == "set" ]; then
-        set_monitoring "$interface_name"
+        if [ "$is_wifi" == "yes" ]; then
+            set_monitoring_wifi "$interface_name"
+        else
+            set_monitoring_wired "$interface_name"
+        fi
     elif [ "$action" == "remove" ]; then
         remove_monitoring "$interface_name"
     else
