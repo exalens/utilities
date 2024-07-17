@@ -5,7 +5,7 @@ def interface_exists(interface_name):
     return result.returncode == 0
 
 def create_dummy_interface():
-    interface_name = 'dummy'
+    interface_name = 'pcap_replay'
     try:
         if not interface_exists(interface_name):
             # Add the dummy interface
@@ -22,6 +22,8 @@ def create_dummy_interface():
         subprocess.run(['sudo', 'ip', 'link', 'set', interface_name, 'allmulticast', 'off'], check=True)
         # Bring the interface up
         subprocess.run(['sudo', 'ip', 'link', 'set', interface_name, 'up'], check=True)
+        # Enable jumbo frames
+        subprocess.run(['sudo', 'ip', 'link', 'set', interface_name, 'mtu', '9000'], check=True)
         
         print(f"Dummy interface '{interface_name}' configured successfully.")
     except subprocess.CalledProcessError as e:
