@@ -1,14 +1,11 @@
 #!/bin/bash
 
-# Function to check if tcpreplay is installed and install it if not
-check_and_install_tcpreplay() {
+# Function to check if tcpreplay is installed
+check_tcpreplay_installed() {
     if ! command -v tcpreplay &> /dev/null; then
-        echo "tcpreplay is not installed. Installing now..."
-        if ! sudo apt-get update && sudo apt-get install -y tcpreplay; then
-            echo "Failed to install tcpreplay"
-            exit 1
-        fi
-        echo "tcpreplay installed successfully."
+        echo "tcpreplay is not installed. To install it, run the following command:"
+        echo "sudo apt-get update && sudo apt-get install -y tcpreplay"
+        exit 1
     fi
 }
 
@@ -57,7 +54,7 @@ main() {
     read -p "Enter the interface name for PCAP replay: " interface_name
     read -p "Enter the PCAP replay bandwidth (e.g., 50Mbps): " replay_bandwidth
 
-    check_and_install_tcpreplay
+    check_tcpreplay_installed
     replay_pcap "$pcap_filename" "$interface_name" "$replay_bandwidth"
 }
 
