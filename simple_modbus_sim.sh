@@ -3,7 +3,7 @@
 # Function to start the Python Modbus simulator
 start_simulator() {
     echo "Starting Modbus simulator..."
-    nohup python simple-modbus_sim.py > modbus_simulator.log 2>&1 &
+    nohup python simple-modbus_sim.py >/dev/null 2>&1
     pid=$!
     echo $pid > modbus_simulator.pid
     if [ -z "$pid" ]; then
